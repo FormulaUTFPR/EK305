@@ -29,6 +29,8 @@
 #define TMR_ACC 100000    //Timer para gravar e enviar dados do acelerômetro 1
 #define TMR_ACELE2 100000 //Timer para gravar e enviar dados do acelerômetro 2
 #define TMR_BLINK 100000  //Timer para piscar o led
+#define TMR_PEDAL 100000  //Timer para sensor do curso do pedal
+
 
 #include <SPI.h>
 #include <mcp2515.h>
@@ -48,6 +50,7 @@ void taskSusp(void);      //Task para leitura do curso de suspensão no balancim
 void taskPedal(void);     //Task para leitura e calcular curso do pedal
 void taskScheduler(void); //Task do escalonador
 void taskBlink(void);     //Task de piscar o led
+void setupInit(void);
 
 //ENDERECOS DOS MODULOS
 const int MPU1 = 0x68; // Se o pino ADO for conectado em GND o modulo assume esse endereço
@@ -128,7 +131,7 @@ void setup()
 
 void loop()
 {
-  taskAcel();
+  taskAcc();
   taskSusp();
   taskBlink();
 }
@@ -245,14 +248,11 @@ void setupCAN()
   digitalWrite(LED_CPU, LOW);
 
   //ACELERÔMETRO 01
-  Modulo1Acc.can_id = EK304CAN_ID_ACC_01;
-  Modulo1Acc.can_dlc = 6;
-
-  Modulo1Gyro.can_id = EK304CAN_ID_GYRO_01;
-  Modulo1Gyro.can_dlc = 6;
+  Acc.can_id = EK305CAN_ID_ACC_01;
+  Acc.can_dlc = 6;
 
   //SUSPENSAO
-  Suspensao.can_id = EK304CAN_ID_SUSP_FRONT;
+  Suspensao.can_id = EK305CAN_ID_SUSP_FRONT;
   Suspensao.can_dlc = 4;
 }
 
