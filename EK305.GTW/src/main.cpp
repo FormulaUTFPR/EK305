@@ -1,10 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Nome do projeto: EK305.GTW                                                                                                         //
-// Nome do arquivo: main.cpp                                                                                                          //
-// Desenvolvido por: Rafael Ramalho | @RamalhoFael                                                                                    //
-// Data/versão: 03/11/2019 (v0.0.1)                                                                                                   //
-// IDE utilizada: Visual Studio Code & PlatformIO                                                                                     //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**************************************************************************************************************************************/
 /* CONFIGURAÇÕES DO PROJETO                                                                                                           */
 /**************************************************************************************************************************************/
@@ -62,15 +55,15 @@
 #define SENSOR_GEAR_MIN 0
 #define SENSOR_GPSHDOP_REF 2.0
 #define SENSOR_VBAT_SAMPLES 10
-#define SENSOR_VBAT_OVERVOLTAGE 14.5
-#define SENSOR_VBAT_UNDERVOLTAGE 10.5
+#define SENSOR_VBAT_OVERVOLTAGE 14.6
+#define SENSOR_VBAT_UNDERVOLTAGE 12
 #define SENSOR_SUSPENSION_MAX 90 //Ângulo máximo da suspensão
 #define SENSOR_SUSPENSION_MIN 0  //Ângulo mínimo da suspensão
 #define SENSOR_QTTY_TOTAL 50     //Número de sensores
 
 // strings
 #define STRING_DISPLAY_TEAMNAME "Formula UTFPR"
-#define STRING_DISPLAY_CARNAME "EK-304"
+#define STRING_DISPLAY_CARNAME "EK-305"
 #define STRING_DISPLAY_DATETIME_MAX 33
 
 // Telas
@@ -1451,12 +1444,12 @@ void taskCAN()
     sdCard.Write(stringFileName, ";\r\n"); //Quebra a linha
 
     Serial.print(frame.can_id, HEX);
-    Serial.print(frame.can_dlc, HEX);
-    Serial.print(" ");
+    //Serial.print(frame.can_dlc, HEX);
+    //Serial.print(" ");
     for (int i = 0; i < frame.can_dlc; i++)
     {
       Serial.print(frame.data[i], HEX);
-      Serial.print(" ");
+      //Serial.print(" ");
     }
 
     Serial.println(";");
