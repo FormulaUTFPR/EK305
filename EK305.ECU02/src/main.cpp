@@ -96,6 +96,11 @@ void setupInit()
 
   tmrFrontBrakeTemp_Enable = true;
   tmrRearBrakeTemp_Enable = true;
+
+  digitalWrite(LED_CPU, HIGH);
+  delay(100);
+  digitalWrite(LED_CPU, LOW);
+  delay(100);
 }
 
 void taskScheduler(void)
