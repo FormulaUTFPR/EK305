@@ -247,13 +247,16 @@ void taskScheduler()
 
 void taskLambdaSensor()
 {
-  int LambdaReadValue = analogRead(LambdaPIN);
-  LambdaSensor.data[0] = (((LambdaReadValue - 0.2) * 0.65 / 4.6) + 0.65) * 100; //valor X100 para torna-lo inteiro //Converte a para fator Lambda
-  if(mcp2515.sendMessage(&LambdaSensor) != MCP2515::ERROR::ERROR_OK)
-  { // envia os dados de um CAN_Frame na CAN
-    //tmrBlinkEnable = false;
-  }
-  tmrLambdaSensor_Overflow = false;
+    if(tmrLambdaSensor_Overflow)
+    {
+    int LambdaReadValue = analogRead(LambdaPIN);
+    LambdaSensor.data[0] = (((LambdaReadValue - 0.2) * 0.65 / 4.6) + 0.65) * 100; //valor X100 para torna-lo inteiro //Converte a para fator Lambda
+    if(mcp2515.sendMessage(&LambdaSensor) != MCP2515::ERROR::ERROR_OK)
+    { // envia os dados de um CAN_Frame na CAN
+     //tmrBlinkEnable = false;
+    }
+    tmrLambdaSensor_Overflow = false;
+    }
 }
 
 /*void taskRPM()//Precisa refazer
