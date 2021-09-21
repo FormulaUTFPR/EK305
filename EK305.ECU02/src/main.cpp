@@ -6,6 +6,10 @@
 //  Temperatura do disco de freio traseiro    IR MLX90614
 //  Pressão do fluído de freio traseiro
 /* -------------------------------------------------------------------- */
+/**********************************************/
+/*Obervacoes
+    
+*/
 
 //Definicao das portas
 #define LED_CPU 8
