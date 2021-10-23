@@ -136,10 +136,10 @@ void SetupInit()
   Timer1.initialize(TMR_BASE);
   Timer1.attachInterrupt(taskScheduler);
 
-  tmr_IN_AirPress_Enable = true;
+  tmr_IN_AirPress_Enable = false;
   tmr_IN_AirTemp_Enable = true;
-  tmr_OUT_AirPress_Enable = true;
-  tmr_OUT_AirTemp_Enable = true;
+  tmr_OUT_AirPress_Enable = false;
+  tmr_OUT_AirTemp_Enable = false;
 }
 
 void taskScheduler()
@@ -195,6 +195,7 @@ void task_IN_AirPress()
     pressao = turboPressure1();
 
     pres = (unsigned int)(pressao);
+
     IN_AirPress.data[0] = pres;
     if(mcp2515.sendMessage(&IN_AirPress)!=MCP2515::ERROR::ERROR_OK)
     {
@@ -231,12 +232,24 @@ void task_IN_AirTemp()
   if(tmr_IN_AirTemp_Overflow)
   {
     float temperatura;
+    float tensao = 0;
     unsigned int temp;
 
-    float tensao = analogRead(Intercooler_IN_AirTemp_PIN) * (5.0 / 1023.0);
+    for(int i = 0; i < 40; i++)
+    {
+      tensao = tensao + analogRead(Intercooler_IN_AirTemp_PIN) * (5000 / 1024);
+    }
+    tensao = tensao/40;//Media de 40 leituras para evitar flutuacoes absurdas
+    Serial.println(tensao);
 
-    temperatura = ((1.0 / -0.0404) * log((tensao * 1000.0) / (7021.0 * (5.0 - tensao))));
-    temp = (unsigned int)(temperatura);
+    temperatura = tensao*0.0509 - 0.0982;//Formula obtida a partir dos dados lidos do sensor. Usou-se o Exce 
+    Serial.println(temperatura);
+
+    tensao = 0;
+
+    //temperatura = ((1.0 / -0.0404) * log((tensao * 1000.0) / (7021.0 * (5.0 - tensao))));
+    //temp = (unsigned int)(temperatura);
+
     IN_AirTemp.data[0] = temp;
     if(mcp2515.sendMessage(&IN_AirTemp)!=MCP2515::ERROR::ERROR_OK)
     {
