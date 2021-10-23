@@ -136,10 +136,10 @@ void SetupInit()
   Timer1.initialize(TMR_BASE);
   Timer1.attachInterrupt(taskScheduler);
 
-  tmr_IN_AirPress_Enable = true;
+  tmr_IN_AirPress_Enable = false;
   tmr_IN_AirTemp_Enable = true;
-  tmr_OUT_AirPress_Enable = true;
-  tmr_OUT_AirTemp_Enable = true;
+  tmr_OUT_AirPress_Enable = false;
+  tmr_OUT_AirTemp_Enable = false;
 }
 
 void taskScheduler()
@@ -235,8 +235,15 @@ void task_IN_AirTemp()
 
     float tensao = analogRead(Intercooler_IN_AirTemp_PIN) * (5.0 / 1023.0);
 
-    temperatura = ((1.0 / -0.0404) * log((tensao * 1000.0) / (7021.0 * (5.0 - tensao))));
-    temp = (unsigned int)(temperatura);
+    Serial.println(tensao);
+
+    temperatura = (tensao - 0.34)*100;
+
+    //temperatura = ((1.0 / -0.0404) * log((tensao * 1000.0) / (7021.0 * (5.0 - tensao))));
+    //temp = (unsigned int)(temperatura);
+
+    Serial.println(temperatura);
+
     IN_AirTemp.data[0] = temp;
     if(mcp2515.sendMessage(&IN_AirTemp)!=MCP2515::ERROR::ERROR_OK)
     {
@@ -244,7 +251,7 @@ void task_IN_AirTemp()
     }
     else
     {
-      Serial.println("Deu ruim IN_AirTemp");
+      //Serial.println("Deu ruim IN_AirTemp");
     }
 
     tmr_IN_AirTemp_Overflow = false;
