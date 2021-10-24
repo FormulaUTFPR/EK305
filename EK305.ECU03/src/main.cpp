@@ -315,7 +315,7 @@ void taskBrakePedalPos()
   {
     int position = analogRead(BrakePedalPosPIN); //Le o valor de posicao do pedal de freio
 
-    position = map(position, 0, 1023, 0, 100);//Converte os bits na posicao do pedal de freio(0% a 100%)
+    position = map(position, 0, 1023, 100, 0);//Converte os bits na posicao do pedal de freio(0% a 100%)
 
     BrakePedalPos.data[0] = position&0xFF;
 
