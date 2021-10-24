@@ -169,12 +169,12 @@ void SetupInit()
 
   //attachInterrupt(digitalPinToInterrupt(RPMPIN), ISR_RPM, RISING); //toda vez que o pino referente ao sensor de RPM vai de LOW para HIGH, ocorre uma interrupcao
 
-  tmrLambdaSensor_Enable = true;
+  tmrLambdaSensor_Enable = false;
   tmrBrakePedalPos_Enable = true;
   tmrRPM_Enable = false; 
-  tmrSteeringWheelPos_Enable = true;
+  tmrSteeringWheelPos_Enable = false;
   tmrSpeed_Enable = false;
-  tmrTPS_Enable = true;
+  tmrTPS_Enable = false;
 
   digitalWrite(LED_CPU, HIGH);
   delay(100);
@@ -315,7 +315,11 @@ void taskBrakePedalPos()
   {
     int position = analogRead(BrakePedalPosPIN); //Le o valor de posicao do pedal de freio
 
-    position = position*(5.0/1024);
+    Serial.println(position);
+
+    position = map(position, 0, 1023, 100, 0);
+
+    Serial.println(position);
 
     BrakePedalPos.data[0] = position&0xFF;
 
