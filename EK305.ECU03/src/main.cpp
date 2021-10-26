@@ -337,9 +337,9 @@ void taskSteeringWheelPos()
   {
     int position = analogRead(SteeringWheelPosPIN); //Le o valor de posicao do pedal de freio
 
-    position = position*(5.0/1024);
+    position = map(position, 0, 1023, 20, 270);//Converte os bits na posicao do volante em graus
 
-    SteeringWheelPos.data[1] = (position>>8)&0xFF;/************************Problema com o tipo de variavel***************************/
+    SteeringWheelPos.data[1] = (position>>8)&0xFF;
     SteeringWheelPos.data[0] = position&0xFF;
 
     if(mcp2515.sendMessage(&SteeringWheelPos)!=MCP2515::ERROR::ERROR_OK)
@@ -356,7 +356,7 @@ void taskTPS()
   {
     int position = analogRead(TPSPIN); //Le o valor de posicao do pedal de freio
 
-    position = position*(5.0/1024);
+    position = map(position, 0, 1023, 0, 100);//Converte os bits na abertura da borboleta(0% a 100%)
 
     TPS.data[0] = position&0xFF;
 

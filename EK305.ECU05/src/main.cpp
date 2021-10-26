@@ -257,7 +257,7 @@ void task_IN_AirTemp()
     }
     else
     {
-      Serial.println("Deu ruim IN_AirTemp");
+      //Serial.println("Deu ruim IN_AirTemp");
     }
 
     tmr_IN_AirTemp_Overflow = false;
