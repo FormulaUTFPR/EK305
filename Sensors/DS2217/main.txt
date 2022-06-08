@@ -1,0 +1,20 @@
+//Esse código trata o sensor como um potenciômetro
+#define PIN_POS A0
+
+void setup()
+{
+  Serial.begin(9600);
+
+  pinMode(PIN_POS, INPUT);
+}
+
+void loop()
+{
+  position = analogRead(PIN
+
+  Serial.println(position);
+
+  position = map(position, 0, 1023, 0, 100);
+  
+  Serial.println(position);
+}
