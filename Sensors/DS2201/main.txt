@@ -1,0 +1,21 @@
+//Esse código trata o sensor como um potenciômetro
+#define PIN_SUSP A0
+
+void setup()
+{
+    Serial.begin(9600);
+
+    pinMode(PIN_SUSP, INPUT);	
+}
+
+void loop()
+{
+    int position = analogRead(PIN_SUSP); //Le o valor de posicao do pedal de freio
+
+    Serial.println(position);
+
+    position = map(position, 0, 1023, 0, 100);
+
+    Serial.println(position);
+
+}
