@@ -1,0 +1,21 @@
+//
+#define PIN_AIR_PRESS A0
+
+void setup()
+{
+  Serial.begin(9600);
+
+  pinMode(PIN_AIR_PRESS, INPUT);
+}
+
+void loop()
+{
+  pressure = analogRead(PIN_AIR_PRESS);
+
+  Serial.println(pressure);
+
+  pressure = (pressure/1023)*5;
+  pressure = pressure*53.7 - 1.09;
+  
+  Serial.println(pressure);
+}
