@@ -9,11 +9,11 @@
 /* -------------------------------------------------------------------- */
 
 //DEFINICAO DAS PORTAS
-#define PIN_SUSP_RIGHT A1  //Porta para o sensor da suspensao direita
-#define PIN_SUSP_LEFT A0 //Porta para o sensor da suspensao esquerda
-#define PIN_ACR_PEDAL_POS A2     //Porta do sensor de posicao do pedal do acelerador
-#define PIN_BRAKE_PEDAL_POS A3   //Porta do sensor de posicao do pedal de freio
-#define PIN_ACC A4            //Porta do acelerometro/giroscopio
+#define SUSP_RIGHT_PIN A1  //Porta para o sensor da suspensao direita
+#define SUSP_LEFT_PIN A0 //Porta para o sensor da suspensao esquerda
+#define ACR_PEDAL_POS_PIN A2     //Porta do sensor de posicao do pedal do acelerador
+#define BRAKE_PEDAL_POS_PIN A3   //Porta do sensor de posicao do pedal de freio
+#define ACC_PIN A4            //Porta do acelerometro/giroscopio
 #define LED_CPU 8            //Porta para o LED do módulo
 
 #define CAN_SCK 13 //Pino SCK da CAN
@@ -172,11 +172,11 @@ void setupInit()
   delay(100);
 
   pinMode(LED_CPU, OUTPUT);
-  pinMode(PIN_BRAKE_PEDAL_POS, INPUT);
-  pinMode(PIN_ACR_PEDAL_POS, INPUT);
-  pinMode(PIN_SUSP_DIREITA, INPUT);
-  pinMode(PIN_SUSP_ESQUERDA, INPUT);
-  pinMode(PIN_ACC, INPUT);
+  pinMode(BRAKE_PEDAL_POS_PIN, INPUT);
+  pinMode(ACR_PEDAL_POS_PIN, INPUT);
+  pinMode(SUSP_RIGHT_PIN, INPUT);
+  pinMode(SUSP_LEFT_PIN, INPUT);
+  pinMode(ACC_PIN, INPUT);
 }
 
 void taskScheduler(void)
@@ -261,7 +261,7 @@ void taskSusp()
 {
   if(tmrSuspOverflow)
   {
-    int position = analogRead(PIN_SUSP_RIGHT);
+    int position = analogRead(SUSP_RIGHT_PIN);
 
     position = map(position, 0, 1023, 0, 100);
     
@@ -281,7 +281,7 @@ void taskACRPedalPos()
   if(tmrACRPedalPos_Overflow)
   {
 
-    position = analogRead(PIN_ACR_PEDAL_POS);
+    position = analogRead(ACR_PEDAL_POS_PIN);
 
     position = map(position, 0, 1023, 0, 100);
 
@@ -300,7 +300,7 @@ void taskBrakePedalPos()
   if(tmrBrakePedalPos_Overflow)
   {
 
-    position = analogRead(PIN_BRAKE_PEDAL_POS);
+    position = analogRead(BRAKE_PEDAL_POS_PIN);
 
     position = map(position, 0, 1023, 0, 100);
  
