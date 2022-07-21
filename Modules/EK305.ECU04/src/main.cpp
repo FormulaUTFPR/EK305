@@ -18,10 +18,10 @@
 #define CAN_SI 11  //Pino SI da CAN
 #define CAN_CS 10  //Pino CS da CAN
 
-#define Intercooler_IN_AirPress_PIN A1 //Pino que recebe o sinal do sensor de pressao posicionado antes do intercooler 
-#define Intercooler_IN_AirTemp_PIN A2 //Pino que recebe o sinal do sensor de temperatura posicionado antes do intercooler
-#define Intercooler_OUT_AirPress_PIN A3 //Pino que recebe o sinal do sensor de pressao posicionado depois do intercooler
-#define Intercooler_OUT_AirTemp_PIN A4 //Pino que recebe o sinal do sensor de temperatura posicionado depois do intercooler
+#define IN_AirPress_PIN A1 //Pino que recebe o sinal do sensor de pressao posicionado antes do intercooler 
+#define IN_AirTemp_PIN A2 //Pino que recebe o sinal do sensor de temperatura posicionado antes do intercooler
+#define OUT_AirPress_PIN A3 //Pino que recebe o sinal do sensor de pressao posicionado depois do intercooler
+#define OUT_AirTemp_PIN A4 //Pino que recebe o sinal do sensor de temperatura posicionado depois do intercooler
 
 //Definicao dos timers
 #define TMR_BASE 100000
@@ -130,10 +130,10 @@ void SetupInit()
 {
   Serial.begin(9600);
 
-  pinMode(Intercooler_IN_AirPress_PIN, INPUT);
-  pinMode(Intercooler_IN_AirTemp_PIN, INPUT);
-  pinMode(Intercooler_OUT_AirPress_PIN, INPUT);
-  pinMode(Intercooler_OUT_AirTemp_PIN, INPUT);
+  pinMode(IN_AirPress_PIN, INPUT);
+  pinMode(IN_AirTemp_PIN, INPUT);
+  pinMode(OUT_AirPress_PIN, INPUT);
+  pinMode(OUT_AirTemp_PIN, INPUT);
 
   Timer1.initialize(TMR_BASE);
   Timer1.attachInterrupt(taskScheduler);
@@ -192,7 +192,16 @@ void task_IN_AirPress()
   if(tmr_IN_AirPress_Overflow)
   {
 
-    IN_AirPress.data[0] = pres;
+    float pressure;
+
+    pressure = analogRead(IN_AirPress_PIN);
+
+    pressure = (pressure/1023)*5;
+   
+    pressure = pressure*53.7 - 1.09;
+  
+    Serial.println(pressure);
+   
     if(mcp2515.sendMessage(&IN_AirPress)!=MCP2515::ERROR::ERROR_OK)
     {
       
@@ -246,7 +255,16 @@ void task_OUT_AirPress()
 {
   if(tmr_OUT_AirPress_Overflow)
   {
-    OUT_AirPress.data[0] = pres;
+    float pressure;
+
+    pressure = analogRead(IN_AirPress_PIN);
+
+    pressure = (pressure/1023)*5;
+    
+    pressure = pressure*53.7 - 1.09;
+  
+    Serial.println(pressure);
+    
     if(mcp2515.sendMessage(&OUT_AirPress)!=MCP2515::ERROR::ERROR_OK)
     {
       
