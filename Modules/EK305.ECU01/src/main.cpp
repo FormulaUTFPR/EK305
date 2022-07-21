@@ -9,10 +9,11 @@
 /* -------------------------------------------------------------------- */
 
 //DEFINICAO DAS PORTAS
-#define PIN_SUSP_DIREITA A1  //Porta para o sensor da suspensao direita
-#define PIN_SUSP_ESQUERDA A0 //Porta para o sensor da suspensao esquerda
+#define PIN_SUSP_RIGHT A1  //Porta para o sensor da suspensao direita
+#define PIN_SUSP_LEFT A0 //Porta para o sensor da suspensao esquerda
 #define PIN_ACR_PEDAL_POS A2     //Porta do sensor de posicao do pedal do acelerador
 #define PIN_BRAKE_PEDAL_POS A3   //Porta do sensor de posicao do pedal de freio
+#define PIN_ACC A4            //Porta do acelerometro/giroscopio
 #define LED_CPU 8            //Porta para o LED do módulo
 
 #define CAN_SCK 13 //Pino SCK da CAN
@@ -32,14 +33,16 @@
 #define TMR_BASE 100000   //Clock base para os multiplicadores
 #define TMR_SUSP 100000   //Timer para gravar dados da suspensão
 #define TMR_ACC 100000    //Timer para gravar e enviar dados do acelerômetro 1
-#define TMR_ACELE2 100000 //Timer para gravar e enviar dados do acelerômetro 2
 #define TMR_BLINK 100000  //Timer para piscar o led
 #define TMR_ACR_PEDAL 100000  //Timer para sensor do pedal do acelerador
 #define TMR_BRAKE_PEDAL 100000  //Timer para sensor do curso do pedal de freio
 
 //ENDERECO CAN
-#define ACRPedal_CAN_ID 0x01
-#define BrakePedal_CAN_ID 0x02
+#define ACR_PEDAL_POS_CAN_ID 0x01
+#define BRAKE_PEDAL_POS_CAN_ID 0x02
+#define SUSP_RIGHT_CAN_ID 0x03
+#define SUSP_LEFT_CAN_ID 0x04
+#define ACC_CAN_ID 0x05
 
 //BIBLIOTECAS
 #include <SPI.h>
@@ -98,7 +101,7 @@ can_frame Acc;
 can_frame Gyro;
 can_frame ACR_Pedal_Pos;
 can_frame Brake_Pedal_Pos;
-can_frame Suspensao;
+can_frame Susp;
 
 MCP2515 mcp2515(CAN_CS); //Pino 10 é o Slave
 
@@ -133,19 +136,19 @@ void setupCAN()
   digitalWrite(LED_CPU, LOW);
 
   //ACELERÔMETRO 01
-  Acc.can_id = EK305CAN_ID_ACC_01;
+  Acc.can_id = ACC_CAN_ID;
   Acc.can_dlc = 6;
 
   //SUSPENSAO
-  Suspensao.can_id = EK305CAN_ID_SUSP_FRONT;
-  Suspensao.can_dlc = 2;
+  Susp.can_id = SUSP_RIGHT_CAN_ID;
+  Susp.can_dlc = 2;
 
   //POSICAO DO PEDAL DO ACELERADOR
-  ACR_Pedal_Pos.can_id = ACRPedal_CAN_ID;
+  ACR_Pedal_Pos.can_id = ACR_PEDAL_POS_CAN_ID;
   ACR_Pedal_Pos.can_dlc = 1;
 
   //POSICAO DO PEDAL DE FREIO
-  Brake_Pedal_Pos.can_id = BrakePedal_CAN_ID;
+  Brake_Pedal_Pos.can_id = BRAKE_PEDAL_POS_CAN_ID;
   Brake_Pedal_Pos.can_dlc = 1;
 
 }
@@ -173,6 +176,7 @@ void setupInit()
   pinMode(PIN_ACR_PEDAL_POS, INPUT);
   pinMode(PIN_SUSP_DIREITA, INPUT);
   pinMode(PIN_SUSP_ESQUERDA, INPUT);
+  pinMode(PIN_ACC, INPUT);
 }
 
 void taskScheduler(void)
@@ -257,14 +261,18 @@ void taskSusp()
 {
   if(tmrSuspOverflow)
   {
+    int position = analogRead(PIN_SUSP_RIGHT);
 
-    if(mcp2515.sendMessage(&Suspensao)!=MCP2515::ERROR::ERROR_OK)
+    position = map(position, 0, 1023, 0, 100);
+    
+    Susp.data[0] = position&0xFF
+    
+    if(mcp2515.sendMessage(&Susp)!=MCP2515::ERROR::ERROR_OK)
     {
     
     }
   }
-
-  Suspensao.data[0] = //var&0xFF
+  
   tmrSuspOverflow = false;
 }
 
@@ -273,8 +281,11 @@ void taskACRPedalPos()
   if(tmrACRPedalPos_Overflow)
   {
 
+    position = analogRead(PIN_ACR_PEDAL_POS);
 
-    ACR_Pedal_Pos.data[0] = //variavel&0xFF;
+    position = map(position, 0, 1023, 0, 100);
+
+    ACR_Pedal_Pos.data[0] = position&0xFF;
 
     if(mcp2515.sendMessage(&ACR_Pedal_Pos)!=MCP2515::ERROR::ERROR_OK)
     {
@@ -289,6 +300,10 @@ void taskBrakePedalPos()
   if(tmrBrakePedalPos_Overflow)
   {
 
+    position = analogRead(PIN_BRAKE_PEDAL_POS);
+
+    position = map(position, 0, 1023, 0, 100);
+ 
     Brake_Pedal_Pos.data[0] = position&0xFF;
 
     if(mcp2515.sendMessage(&Brake_Pedal_Pos)!=MCP2515::ERROR::ERROR_OK)
