@@ -18,10 +18,10 @@
 #define CAN_SI 11  //Pino SI da CAN
 #define CAN_CS 10  //Pino CS da CAN
 
-#define IN_AirPress_PIN A1 //Pino que recebe o sinal do sensor de pressao posicionado antes do intercooler 
-#define IN_AirTemp_PIN A2 //Pino que recebe o sinal do sensor de temperatura posicionado antes do intercooler
-#define OUT_AirPress_PIN A3 //Pino que recebe o sinal do sensor de pressao posicionado depois do intercooler
-#define OUT_AirTemp_PIN A4 //Pino que recebe o sinal do sensor de temperatura posicionado depois do intercooler
+#define IN_AIR_PRESS_PIN A1 //Pino que recebe o sinal do sensor de pressao posicionado antes do intercooler 
+#define IN_AIR_PRESS_PIN A2 //Pino que recebe o sinal do sensor de temperatura posicionado antes do intercooler
+#define OUT_AIR_PRESS_PIN A3 //Pino que recebe o sinal do sensor de pressao posicionado depois do intercooler
+#define OUT_AIR_TEMP_PIN A4 //Pino que recebe o sinal do sensor de temperatura posicionado depois do intercooler
 
 //Definicao dos timers
 #define TMR_BASE 100000
@@ -31,16 +31,16 @@
 #define TMR_OUT_AIR_TEMP 200000
 
 //Definicao CAN_ID
-#define IN_AirPress_CAN_ID 0xA4
-#define IN_AirTemp_CAN_ID 0xB4
-#define OUT_AirPress_CAN_ID 0xC
-#define OUT_AirTemp_CAN_ID 0xD4
+#define IN_AIR_PRESS_CAN_ID 0xA4
+#define IN_AIR_TEMP_CAN_ID 0xB4
+#define OUT_AIR_PRESS_CAN_ID 0xC
+#define OUT_AIR_TEMP_CAN_ID 0xD4
 
 //Definicao CAN_ID
-#define IN_AirPress_CAN_DLC 1
-#define IN_AirTemp_CAN_DLC 1
-#define OUT_AirPress_CAN_DLC 1
-#define OUT_AirTemp_CAN_DLC 1
+#define IN_AIR_PRESS_CAN_DLC 1
+#define IN_AIR_TEMP_CAN_DLC 1
+#define OUT_AIR_PRESS_CAN_DLC 1
+#define OUT_AIR_TEMP_CAN_DLC 1
 
 //Demais definicoes
 
@@ -62,10 +62,6 @@ void task_IN_AirTemp(); //Funcao que le e envia os dados referentes a temperatur
 void taskScheduler();
 void task_OUT_AirPress(); //Funcao que le e envia os dados referentes a pressao do ar na saida do intercooler
 void task_OUT_AirTemp(); //Funcao que le e envia os dados referentes a temperatura do ar na saida do intercooler
-
-//Prototipo de funcoes auxiliares
-float turboPressure1(); //Funcao que ajuda a calcular o valor da pressao na entrada do intercooler
-float turboPressure2(); //Funcao que ajuda a calcular o valor da pressao na saida do intercooler
 
 //Variaveis globais de controle das funcoes task
 bool tmr_IN_AirPress_Overflow = false;
@@ -115,25 +111,25 @@ void SetupCAN()
   //CAN_Init(&mcp2515, CAN_500KBPS); //O codigo nao roda sem a CAN, so se comentar aqui
   digitalWrite(LED_CPU, LOW);
 
-  IN_AirPress.can_id = IN_AirPress_CAN_ID;
-  IN_AirTemp.can_id = IN_AirTemp_CAN_ID;
-  OUT_AirPress.can_id = OUT_AirPress_CAN_ID;
-  OUT_AirTemp.can_id = OUT_AirTemp_CAN_ID;
+  IN_AirPress.can_id = IN_AIR_PRESS_CAN_ID;
+  IN_AirTemp.can_id = IN_AIR_TEMP_CAN_ID;
+  OUT_AirPress.can_id = OUT_AIR_PRESS_CAN_ID;
+  OUT_AirTemp.can_id = OUT_AIR_TEMP_CAN_ID;
 
-  IN_AirPress.can_dlc = IN_AirPress_CAN_DLC;
-  IN_AirTemp.can_dlc = IN_AirTemp_CAN_DLC;
-  OUT_AirPress.can_dlc = OUT_AirPress_CAN_DLC;
-  OUT_AirTemp.can_dlc = OUT_AirTemp_CAN_DLC;
+  IN_AirPress.can_dlc = IN_AIR_PRESS_CAN_DLC;
+  IN_AirTemp.can_dlc = IN_AIR_TEMP_CAN_DLC;
+  OUT_AirPress.can_dlc = OUT_AIR_PRESS_CAN_DLC;
+  OUT_AirTemp.can_dlc = OUT_AIR_TEMP_CAN_DLC;
 }
 
 void SetupInit()
 {
   Serial.begin(9600);
 
-  pinMode(IN_AirPress_PIN, INPUT);
-  pinMode(IN_AirTemp_PIN, INPUT);
-  pinMode(OUT_AirPress_PIN, INPUT);
-  pinMode(OUT_AirTemp_PIN, INPUT);
+  pinMode(IN_AIR_PRESS_PIN, INPUT);
+  pinMode(IN_AIR_TEMP_PIN, INPUT);
+  pinMode(OUT_AIR_PRESS_PIN, INPUT);
+  pinMode(OUT_AIR_TEMP_PIN, INPUT);
 
   Timer1.initialize(TMR_BASE);
   Timer1.attachInterrupt(taskScheduler);
