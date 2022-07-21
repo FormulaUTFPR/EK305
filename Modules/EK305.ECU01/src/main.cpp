@@ -76,17 +76,17 @@ bool estadoLed = false;
 
 //Variáveis para controle de Tarefas
 
-bool tmrBlinkOverflow = false;
-bool tmrBlinkEnable = false;
-int tmrBlinkCount = 0;
+bool tmrBlink_Overflow = false;
+bool tmrBlink_Enable = false;
+int tmrBlink_Count = 0;
 
-bool tmrSuspOverflow = false;
-bool tmrSuspEnable = false;
-int tmrSuspCount = 0;
+bool tmrSusp_Overflow = false;
+bool tmrSusp_Enable = false;
+int tmrSusp_Count = 0;
 
-bool tmrAccOverflow = false;
-bool tmrAccEnable = false;
-int tmrAccCount = 0;
+bool tmrAcc_Overflow = false;
+bool tmrAcc_Enable = false;
+int tmrAcc_Count = 0;
 
 bool tmrACRPedalPos_Overflow = false;
 bool tmrACRPedalPos_Enable = false;
@@ -99,8 +99,8 @@ int tmrBrakePedalPos_Count = 0;
 //CAN
 can_frame Acc;
 can_frame Gyro;
-can_frame ACR_Pedal_Pos;
-can_frame Brake_Pedal_Pos;
+can_frame ACRPedalPos;
+can_frame BrakePedalPos;
 can_frame Susp;
 
 MCP2515 mcp2515(CAN_CS); //Pino 10 é o Slave
@@ -144,12 +144,12 @@ void setupCAN()
   Susp.can_dlc = 2;
 
   //POSICAO DO PEDAL DO ACELERADOR
-  ACR_Pedal_Pos.can_id = ACR_PEDAL_POS_CAN_ID;
-  ACR_Pedal_Pos.can_dlc = 1;
+  ACRPedalPos.can_id = ACR_PEDAL_POS_CAN_ID;
+  ACRPedalPos.can_dlc = 1;
 
   //POSICAO DO PEDAL DE FREIO
-  Brake_Pedal_Pos.can_id = BRAKE_PEDAL_POS_CAN_ID;
-  Brake_Pedal_Pos.can_dlc = 1;
+  BrakePedalPos.can_id = BRAKE_PEDAL_POS_CAN_ID;
+  BrakePedalPos.can_dlc = 1;
 
 }
 
@@ -160,11 +160,11 @@ void setupInit()
   Timer1.initialize(TMR_BASE);
   Timer1.attachInterrupt(taskScheduler);
 
-  tmrSuspEnable = true;
+  tmrSusp_Enable = true;
   tmrACRPedalPos_Enable = false;
   tmrBrakePedalPos_Enable = false;
   tmrBlinkEnable = false;
-  tmrAccEnable = false;
+  tmrAcc_Enable = false;
 
   digitalWrite(LED_CPU, HIGH);
   delay(100);
@@ -181,23 +181,23 @@ void setupInit()
 
 void taskScheduler(void)
 {
-  if (tmrSuspEnable)
+  if (tmrSusp_Enable)
   {
-    tmrSuspCount++;
-    if (tmrSuspCount >= TMR_SUSP / TMR_BASE)
+    tmrSusp_Count++;
+    if (tmrSusp_Count >= TMR_SUSP / TMR_BASE)
     {
-      tmrSuspCount = 0;
-      tmrSuspOverflow = true;
+      tmrSusp_Count = 0;
+      tmrSusp_Overflow = true;
     }
   }
 
-  if (tmrAccEnable)
+  if (tmrAcc_Enable)
   {
-    tmrAccCount++;
-    if (tmrAccCount >= TMR_ACC / TMR_BASE)
+    tmrAcc_Count++;
+    if (tmrAcc_Count >= TMR_ACC / TMR_BASE)
     {
-      tmrAccCount = 0;
-      tmrAccOverflow = true;
+      tmrAcc_Count = 0;
+      tmrAcc_Overflow = true;
     }
   }
 
@@ -259,7 +259,7 @@ void taskAcc(void)
 
 void taskSusp()
 {
-  if(tmrSuspOverflow)
+  if(tmrSusp_Overflow)
   {
     int position = analogRead(SUSP_RIGHT_PIN);
 
