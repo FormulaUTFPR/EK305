@@ -13,7 +13,7 @@
 #define SUSP_LEFT_PIN A0 //Porta para o sensor da suspensao esquerda
 #define ACR_PEDAL_POS_PIN A2     //Porta do sensor de posicao do pedal do acelerador
 #define BRAKE_PEDAL_POS_PIN A3   //Porta do sensor de posicao do pedal de freio
-#define ACC_PIN A4            //Porta do acelerometro/giroscopio
+//#define ACC_PIN A4            //Porta do acelerometro/giroscopio
 #define LED_CPU 8            //Porta para o LED do módulo
 
 #define CAN_SCK 13 //Pino SCK da CAN
@@ -72,6 +72,7 @@ const int MPU2 = 0x69; // Se o pino ADO for conectado em 5V ou 3,3V o modulo ass
 
 //Variáveis Globais
 
+float AccX, AccY, AccZ, Temp, GyrX, GyrY, GyrZ;
 bool estadoLed = false;
 
 //Variáveis para controle de Tarefas
@@ -111,7 +112,7 @@ void setup()
 
   setupCAN();
 
-  setupWIRE();
+  //setupWIRE();
 
   SPI.begin();
   Serial.begin(9600); //Usar somente para teste
@@ -125,8 +126,6 @@ void loop()
   taskBrakePedalPos();
   taskBlink();
 }
-
-//VERIFICAR SE E NECESSARIO ESSA PARTE
 
 void setupCAN()
 {
@@ -160,10 +159,29 @@ void setupInit()
   Timer1.initialize(TMR_BASE);
   Timer1.attachInterrupt(taskScheduler);
 
+  //Inicializa o acelerometro
+  Wire.begin();
+  Wire.beginTransmission(MPU1);
+  Wire.write(0x6B);
+  Wire.write(0);
+  Wire.endTransmission(true);
+
+  //Configura o fundo de escala do giroscopio
+  Wire.beginTransmission(MPU1);
+  Wire.write(0x1B);
+  Wire.write(0x00011000);  // Trocar esse comando para fundo de escala desejado conforme acima
+  Wire.endTransmission();
+
+  //Configura o fundo de escala do acelerometro
+  Wire.beginTransmission(MPU1);
+  Wire.write(0x1C);
+  Wire.write(0b00011000);  // Trocar esse comando para fundo de escala desejado conforme acima
+  Wire.endTransmission();
+
   tmrSusp_Enable = true;
   tmrACRPedalPos_Enable = false;
   tmrBrakePedalPos_Enable = false;
-  tmrBlinkEnable = false;
+  tmrBlink_Enable = false;
   tmrAcc_Enable = false;
 
   digitalWrite(LED_CPU, HIGH);
@@ -176,7 +194,7 @@ void setupInit()
   pinMode(ACR_PEDAL_POS_PIN, INPUT);
   pinMode(SUSP_RIGHT_PIN, INPUT);
   pinMode(SUSP_LEFT_PIN, INPUT);
-  pinMode(ACC_PIN, INPUT);
+  //pinMode(ACC_PIN, INPUT);
 }
 
 void taskScheduler(void)
@@ -221,39 +239,86 @@ void taskScheduler(void)
     }
   }
 
-  if (tmrBlinkEnable)
+  if (tmrBlink_Enable)
   {
-    tmrBlinkCount++;
-    if (tmrBlinkCount >= TMR_BLINK / TMR_BASE)
+    tmrBlink_Count++;
+    if (tmrBlink_Count >= TMR_BLINK / TMR_BASE)
     {
-      tmrBlinkCount = 0;
-      tmrBlinkOverflow = true;
+      tmrBlink_Count = 0;
+      tmrBlink_Overflow = true;
     }
   }
   else
   {
-    tmrBlinkCount++;
-    if (tmrBlinkCount >= 10 * TMR_BLINK / TMR_BASE)
+    tmrBlink_Count++;
+    if (tmrBlink_Count >= 10 * TMR_BLINK / TMR_BASE)
     {
-      tmrBlinkCount = 0;
-      tmrBlinkOverflow = true;
+      tmrBlink_Count = 0;
+      tmrBlink_Overflow = true;
     }
   }
 }
 
 void taskBlink(void)
 {
-  if (tmrBlinkOverflow)
+  if (tmrBlink_Overflow)
   {
     digitalWrite(LED_CPU, estadoLed);
     estadoLed != estadoLed;
-    tmrBlinkOverflow = false;
+    tmrBlink_Overflow = false;
   }
 }
 
 // ACELERÔMETRO 01
 void taskAcc(void)
 {
+
+  Wire.beginTransmission(1);
+  Wire.write(0x3B);
+  Wire.endTransmission(false);
+  Wire.requestFrom(MPU1, 14, true); // Solicita os dados ao sensor
+
+  // Armazena o valor dos sensores nas variaveis correspondentes
+  AccX = Wire.read() << 8 | Wire.read(); //0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
+  AccY = Wire.read() << 8 | Wire.read(); //0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+  AccZ = Wire.read() << 8 | Wire.read(); //0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
+  Temp = Wire.read() << 8 | Wire.read(); //0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
+  GyrX = Wire.read() << 8 | Wire.read(); //0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
+  GyrY = Wire.read() << 8 | Wire.read(); //0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
+  GyrZ = Wire.read() << 8 | Wire.read(); //0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
+
+  // Imprime na Serial os valores obtidos
+  /* Alterar divisão conforme fundo de escala escolhido:
+      Acelerômetro
+      +/-2g = 16384
+      +/-4g = 8192
+      +/-8g = 4096
+      +/-16g = 2048
+
+      Giroscópio
+      +/-250°/s = 131
+      +/-500°/s = 65.6
+      +/-1000°/s = 32.8
+      +/-2000°/s = 16.4
+  */
+
+  Serial.print(AccX / 2048);
+  Serial.print(" ");
+  Serial.print(AccY / 2048);
+  Serial.print(" ");
+  Serial.println(AccZ / 2048);
+
+  Acc.data[0] = (int(AccX)&0xFF << 8);
+  Acc.data[1] = AccX;
+  Acc.data[2] = (int(AccY)&0xFF << 8);
+  Acc.data[3] = AccY;
+  Acc.data[4] = (int(AccZ)&0xFF << 8);
+  Acc.data[5] = AccZ;
+
+  if(mcp2515.sendMessage(&Acc)!=MCP2515::ERROR::ERROR_OK){}
+
+  tmrAcc_Overflow = false;
+
 
 }
 
@@ -265,7 +330,7 @@ void taskSusp()
 
     position = map(position, 0, 1023, 0, 100);
     
-    Susp.data[0] = position&0xFF
+    Susp.data[0] = position&0xFF;
     
     if(mcp2515.sendMessage(&Susp)!=MCP2515::ERROR::ERROR_OK)
     {
@@ -273,7 +338,7 @@ void taskSusp()
     }
   }
   
-  tmrSuspOverflow = false;
+  tmrSusp_Overflow = false;
 }
 
 void taskACRPedalPos()
@@ -281,13 +346,13 @@ void taskACRPedalPos()
   if(tmrACRPedalPos_Overflow)
   {
 
-    position = analogRead(ACR_PEDAL_POS_PIN);
+    int position = analogRead(ACR_PEDAL_POS_PIN);
 
     position = map(position, 0, 1023, 0, 100);
 
-    ACR_Pedal_Pos.data[0] = position&0xFF;
+    ACRPedalPos.data[0] = position&0xFF;
 
-    if(mcp2515.sendMessage(&ACR_Pedal_Pos)!=MCP2515::ERROR::ERROR_OK)
+    if(mcp2515.sendMessage(&ACRPedalPos)!=MCP2515::ERROR::ERROR_OK)
     {
     
     }
@@ -300,13 +365,13 @@ void taskBrakePedalPos()
   if(tmrBrakePedalPos_Overflow)
   {
 
-    position = analogRead(BRAKE_PEDAL_POS_PIN);
+    int position = analogRead(BRAKE_PEDAL_POS_PIN);
 
     position = map(position, 0, 1023, 0, 100);
  
-    Brake_Pedal_Pos.data[0] = position&0xFF;
+    BrakePedalPos.data[0] = position&0xFF;
 
-    if(mcp2515.sendMessage(&Brake_Pedal_Pos)!=MCP2515::ERROR::ERROR_OK)
+    if(mcp2515.sendMessage(&BrakePedalPos)!=MCP2515::ERROR::ERROR_OK)
     {
     
     }
