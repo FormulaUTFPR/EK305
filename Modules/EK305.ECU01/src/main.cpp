@@ -273,7 +273,7 @@ void taskBlink(void)
 void taskAcc(void)
 {
 
-  Wire.beginTransmission(1);
+  Wire.beginTransmission(MPU1);
   Wire.write(0x3B);
   Wire.endTransmission(false);
   Wire.requestFrom(MPU1, 14, true); // Solicita os dados ao sensor
