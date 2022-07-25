@@ -117,7 +117,12 @@ void setup()
 
 void loop()
 {
-
+    void taskRearSuspPosRight();
+    void taskRearSuspPosLeft();
+    void taskAcc1();
+    void taskAcc2();
+    void taskCurrentSensor();
+    void taskVoltageSensor();
 }
 
 void setupCAN()
@@ -257,7 +262,7 @@ void taskScheduler(void)
 void taskAcc1(){
 
   if(tmrAcc1_Overflow){
-  Wire.beginTransmission(1);
+  Wire.beginTransmission(MPU1);
   Wire.write(0x3B);
   Wire.endTransmission(false);
   Wire.requestFrom(MPU1, 14, true); // Solicita os dados ao sensor
