@@ -271,7 +271,7 @@ void taskAcc1(){
   GyrY = Wire.read() << 8 | Wire.read(); //0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
   GyrZ = Wire.read() << 8 | Wire.read(); //0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
 
-  // Imprime na Serial os valores obtidos
+  // Imprime na Serial o valore obtido
   /* Alterar divisão conforme fundo de escala escolhido:
       Acelerômetro
       +/-2g = 16384
