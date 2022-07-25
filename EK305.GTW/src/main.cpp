@@ -9,6 +9,7 @@
 #define TMR_STARTUP_NAME 1000000 //Tempo para ligar
 #define TMR_ERRORMSGS 2000000    //Tempo para alternar a mensagem de erro
 #define TMR_CANTEST 1000000      //Tempo para mandar os pacotes ASK
+#define TMR_BARPIN 100000        //Tempo para ajustar a barra de pinos RGB do volante com dados de RPM
 
 #define TMR_CANCHECKERROR 1500 // millisecs()
 
@@ -84,6 +85,7 @@
 #define EK305CAN_ECU02_ENABLED true
 #define EK305CAN_ECU03_ENABLED true
 #define EK305CAN_ECU04_ENABLED true
+#define EK305CAN_ECU05_ENABLED true
 #define EK305CAN_ECU15_ENABLED false
 
 /**************************************************************************************************************************************/
@@ -118,6 +120,10 @@
 // pinos utilizados como entrada analógica
 #define V_BAT A0 // define V_BAT no pino A0
 
+// pinos utilizados pela barra de pinos RGB
+#define RGB_PIN      LCD_D0      // pino da barra
+#define RGB_NUMPIXELS 7     // numero de pontos RGB
+
 // pinos para os LEDs
 
 #define LED_RUN 22
@@ -133,6 +139,7 @@
 #include <mcp2515.h>     // importa biblioteca de funções módulo CAN transcievers (baixo nível)
 #include <LinkedList.h>
 #include <SD.h>
+#include <Adafruit_NeoPixel.h>
 
 #include <EK305ERRORS.h>
 #include <EK305SETTINGS.h>
@@ -154,6 +161,7 @@ void taskSerial();        // tarefa de controle da serial
 void taskEncoder();       // tarefa de leitura do encoder
 void taskErrorsMonitor(); // tarefa de monitoração de erros no sistema
 void taskADC();           // tafera de leitura das entradas analógicas
+void taskRGB();           // tarefa de mudança de estado dos leds RGB do volante
 
 /**************************************************************************************************************************************/
 /* PROTÓTIPO DAS FUNÇÕES                                                                                                              */
@@ -178,6 +186,8 @@ void setupInit();     // configura o início do sistema
 void setupADC();      // configura os conversoes A/D
 void setupSensors();  // configura os sensores
 void setupSDModule(); // configura o módulo SDCard
+void setupRGB();      // configura a barra de pinos do volante
+void piscaVolante();  // configura a tarefa para alternar entre cores na barra de pinos de RPM
 
 void SDWrite(String fileName, String data);
 void SDInit(int SC_PIN);
@@ -531,6 +541,11 @@ bool tmrCanCheckErrorEnabled = false;  // habilita o timer para o tempo de teste
 bool tmrCanCheckErrorOverflow = false; // sinaliza quando houve estouro do contator dotempo de teste de comunicação CAN com os módulos
 int tmrCanCheckErrorCount = 0;         // conta quantos múltiplos de TMR_BASE se passaram para o tempo de teste de comunicação CAN com os módulos
 
+bool tmrRGBEnabled = false;  // habilita o timer para o tempo de mudança de estado do RGB do volante
+bool tmrRGBOverflow = false; // sinaliza quando houve estouro do contator dotempo de teste de comunicação CAN com os módulos
+int tmrRGBCount = 0;         // conta quantos múltiplos de TMR_BASE se passaram para o tempo de teste de comunicação CAN com os módulos
+bool RGBFlag = false;        // flag utilizada para alternar entre valores
+
 // informações da tela
 Sensor senOverview[4]; // armazena uma cópia dos valuees dos sensores (buffer) a serem mostrados no display
 DateTime horaAtual;    // armazena a hora a ser mostrada na tela
@@ -570,6 +585,9 @@ Encoder encoder; // cria uma instância do encoder
 // can
 can_frame canMsg; // armazena as informações do frame da CAN
 can_frame frame;
+
+// barra de pinos RGB 
+Adafruit_NeoPixel pixels(RGB_NUMPIXELS, RGB_PIN, NEO_GRB + NEO_KHZ800);
 
 // serial
 String bufSerial; // buffer para transmissão na serial
@@ -647,7 +665,9 @@ void setupADC()
 void setupBlink()
 {
   tmrBlinkEnabled = true;
+  pixels.begin();
 }
+
 
 void setupSensors()
 {
@@ -839,6 +859,16 @@ void taskScheduler()
       tmrCanTestCount = 0;
     }
   }
+
+  if (tmrRGBEnabled)
+  {
+    tmrRGBCount++;
+    if (tmrRGBCount >= TMR_BARPIN / TMR_BASE)
+    {
+      tmrRGBOverflow = true;
+      tmrRGBCount = 0;
+    }
+  }
 }
 
 void taskADC() //Task para pegar o value de tensão da bateria
@@ -1021,6 +1051,22 @@ void taskDisplay()
 
     flagUpdateDisplay = false;
   }
+}
+
+void taskRGB()
+{
+  piscaVolante();
+  tmrRGBOverflow = false;
+}
+
+void piscaVolante()
+{
+  if (RGBFlag){
+    pixels.setPixelColor(0, 255, 0, 0); // Cor 1
+  }else{
+    pixels.setPixelColor(0, 0, 255, 0); // Cor 2
+  }
+  RGBFlag = !RGBFlag;
 }
 
 void taskGPS()
